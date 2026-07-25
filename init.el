@@ -18,12 +18,24 @@
 (setq-default tab-always-indent nil)
 (setq display-line-numbers-type 'relative)
 (global-display-line-numbers-mode 1)
+(setq-default fill-column 100)
+(global-display-fill-column-indicator-mode t)
+
+
 (electric-pair-mode 1)
 (show-paren-mode 1)
+
+(setopt use-short-answers t)
+
+(setq backup-directory-alist `(("." . "~/.emacs.d/backups")))
 
 
 ;; Keybinds
 (global-set-key (kbd "C-c C-d") 'duplicate-line)
+(global-set-key (kbd "C-x b") 'consult-buffer)
+(global-set-key (kbd "C-s") 'consult-line)
+(global-set-key (kbd "C-x /") 'consult-ripgrep)
+(global-set-key (kbd "C-c C-c") 'compile)
 
 ;; Установка и настройка Company (автодополнение)
 (unless (package-installed-p 'company)
@@ -32,38 +44,38 @@
 (setq company-idle-delay 0.2)
 (setq company-minimum-prefix-length 2)
 
-;; Установка и настройка Yasnippet (шаблоны кода)
-(unless (package-installed-p 'yasnippet)
-  (package-install 'yasnippet))
-(yas-global-mode 1)
-
-;; Интеграция Company и Yasnippet (чтобы шаблоны тоже появлялись в автодополнении)
-(unless (package-installed-p 'company-box)
-  (package-install 'company-box))
-(add-hook 'company-mode-hook 'company-box-mode)
-
-
 ;; Eglot config
 ;; go-mode для синтаксиса
 (require 'go-mode)
 (require 'eglot)
 
 (add-hook 'go-mode-hook #'eglot-ensure)
+(add-hook 'before-save-hook 'eglot-format-buffer)
+
+;; Setting consult
+(require 'vertico)
+(vertico-mode 1)
+
+(require 'consult)
+
+;; Custom func
+;; Delete all buffers
+(defun kill-all-buffers ()
+  "Kill all buffers"
+  (interactive)
+  (mapc 'kill-buffer (buffer-list)))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
+ ;; If there is more thaпn one, they won't work right.
  '(custom-safe-themes
-   '("f700bc979515153bef7a52ca46a62c0aa519950cc06d539df4f3d38828944a2c"
-	 "91db2df9490180a006964179f3aa4fcbc6bbf63cdcba189b41ea1ff5a606df33"
-	 "653bc7ac0de0537b10facb11a2872b7dbe1da12eec99d19adead120aa6285712"
-	 "228e932e23d80003c030090a00cb6ad31c2d55d4e8d9c994538d5b5175be1e8b"
+   '("d1d0bd3d8be9acb87bbdcd1ed3f8d2597403db3f53a9d79560e0213d20b8d780"
 	 default))
  '(package-selected-packages
-   '(base16-theme company company-box exec-path-from-shell go-mode
-				  yasnippet)))
+   '(company company-box consult exec-path-from-shell go-mode magit
+			 orderless vertico)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
