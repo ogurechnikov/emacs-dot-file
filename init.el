@@ -21,6 +21,9 @@
 (setq-default fill-column 100)
 (global-display-fill-column-indicator-mode t)
 
+;; Прозрачность фона
+(add-to-list 'default-frame-alist '(alpha-background . 85))
+(set-frame-parameter nil 'alpha-background 85)
 
 (electric-pair-mode 1)
 (show-paren-mode 1)
@@ -70,9 +73,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more thaпn one, they won't work right.
- '(custom-safe-themes
-   '("d1d0bd3d8be9acb87bbdcd1ed3f8d2597403db3f53a9d79560e0213d20b8d780"
-	 default))
  '(package-selected-packages
    '(company company-box consult exec-path-from-shell go-mode magit
 			 orderless vertico)))
