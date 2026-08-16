@@ -1,15 +1,13 @@
 (require 'package)
-<<<<<<< HEAD
 (require 'project)
 
 ;; Пакетные менеджеры
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-=======
 
 ;; Пакетные менеджеры
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
->>>>>>> master
+
 (package-initialize)
 
 
@@ -104,7 +102,6 @@
 ;; SLIME keybindings
 (global-set-key (kbd "C-c s") 'slime)  ;; Запуск SLIME
 
->>>>>>> master
 ;; Setting consult
 (require 'vertico)
 (vertico-mode 1)

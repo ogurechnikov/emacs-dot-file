@@ -1,4 +1,8 @@
+*.emacs.desktop
+*.emacs.desktop.lock
+
 desktop
+
 auto-save-list/
 backups/
 eln-cache/
