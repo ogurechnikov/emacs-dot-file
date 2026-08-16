@@ -58,7 +58,7 @@
 (global-set-key (kbd "C-c C-d") 'duplicate-line)
 (global-set-key (kbd "C-x b") 'consult-buffer)
 (global-set-key (kbd "C-x /") 'consult-ripgrep)
-(global-set-key (kbd "C-c g") 'magit)
+(global-set-key (kbd "C-x g") 'magit)
 
 ;; (global-set-key (kbd "C-c C-c") 'compile)
 
@@ -68,6 +68,11 @@
 (add-hook 'after-init-hook 'global-company-mode)
 (setq company-idle-delay 0.2)
 (setq company-minimum-prefix-length 2)
+
+;; Magit
+(require 'magit)
+
+(add-hook 'magit-status-mode-hook 'auto-revert-mode)
 
 ;; Magit GitFlow
 (unless (package-installed-p 'magit-gitflow)
