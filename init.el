@@ -1,119 +1,222 @@
+;;; ---------------------------------------------------------------------------
+;;; Package management
+;;; ---------------------------------------------------------------------------
+
 (require 'package)
-(require 'project)
 
-;; Пакетные менеджеры
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/")
+             t)
 
-;; Пакетные менеджеры
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
+(add-to-list 'package-archives
+             '("nongnu" . "https://elpa.nongnu.org/nongnu/")
+             t)
 
-(package-initialize)
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(eval-when-compile
+  (require 'use-package))
 
 
-;; Глобальные настройки
-(desktop-save-mode 1)
+;;; ---------------------------------------------------------------------------
+;;; UI
+;;; ---------------------------------------------------------------------------
 
 (tool-bar-mode -1)
 (menu-bar-mode -1)
+(scroll-bar-mode -1)
 
+(setopt
+ tab-width 4
+ display-line-numbers-type 'relative
+ fill-column 80
+ use-short-answers t)
 
-(setq-default tab-width 4)
-(setq-default indent-tabs-mode t)
-(setq-default tab-always-indent nil)
-(setq display-line-numbers-type 'relative)
 (global-display-line-numbers-mode 1)
-(setq-default fill-column 80)
-(global-display-fill-column-indicator-mode t)
-
+(global-display-fill-column-indicator-mode 1)
 
 (electric-pair-mode 1)
 (show-paren-mode 1)
+(desktop-save-mode 1)
 
-(setopt use-short-answers t)
 
-(setq backup-directory-alist `(("." . "~/.emacs.d/backups")))
+;;; ---------------------------------------------------------------------------
+;;; Files
+;;; ---------------------------------------------------------------------------
 
-;; Добавляем путь к сгенерированным темам DMS
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+(setopt
+ backup-directory-alist
+ '(("." . "~/.emacs.d/backups")))
 
-;; Функция для безопасной загрузки/перезагрузки темы
-(defun load-dms-theme ()
-  (interactive)
+
+;;; ---------------------------------------------------------------------------
+;;; Theme
+;;; ---------------------------------------------------------------------------
+
+(setopt custom-safe-themes t)
+
+(add-to-list 'custom-theme-load-path
+             "~/.emacs.d/themes/")
+
+(defun my/load-theme ()
+  "Load the DMS theme."
   (load-theme 'dank-emacs t))
 
-;; Первичная загрузка темы при старте
-(load-dms-theme)
+(my/load-theme)
 
-;; Автоматический пересчет цветов, если Matugen обновил файл на диске
-(use-package filenotify
+
+;;; ---------------------------------------------------------------------------
+;;; Theme auto-reload
+;;; ---------------------------------------------------------------------------
+
+(require 'filenotify)
+
+(let ((theme-file
+       (expand-file-name "~/.emacs.d/themes/dank-emacs-theme.el")))
+  (when (file-exists-p theme-file)
+    (file-notify-add-watch
+     theme-file
+     '(change)
+     (lambda (event)
+       (when (eq (cadr event) 'changed)
+         (run-with-timer 0.1 nil #'my/load-theme))))))
+
+
+;;; ---------------------------------------------------------------------------
+;;; Completion
+;;; ---------------------------------------------------------------------------
+
+;; Completion at point
+(use-package corfu
+  :ensure t
+  :custom
+  (corfu-auto t)
+  (corfu-auto-delay 0.2)
+  (corfu-auto-prefix 2)
+  (corfu-cycle t)
+  (corfu-preselect 'prompt)
+  :init
+  (global-corfu-mode))
+
+
+;; Minibuffer completion UI
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode))
+
+
+;; Flexible matching
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-defaults nil)
+  (completion-category-overrides
+   '((file (styles partial-completion)))))
+
+
+;; Rich minibuffer annotations
+(use-package marginalia
+  :ensure t
+  :init
+  (marginalia-mode))
+
+
+;; Search and navigation
+(use-package consult
+  :ensure t
+  :bind
+  (("C-x b" . consult-buffer)
+   ("C-x /" . consult-ripgrep)
+   ("C-x C-r" . consult-recent-file)
+   ("M-y" . consult-yank-from-kill-ring)))
+
+
+;;; ---------------------------------------------------------------------------
+;;; Projects
+;;; ---------------------------------------------------------------------------
+
+(use-package project
   :ensure nil
-  :config
-  (let ((theme-file (expand-file-name "~/.emacs.d/themes/dank-emacs-theme.el")))
-    (when (file-exists-p theme-file)
-      (file-notify-add-watch
-       theme-file
-       '(change)
-       (lambda (event)
-         (when (memq 'changed event)
-           ;; Запускаем с небольшой задержкой, чтобы файл успел перезаписаться полностью
-           (run-with-timer 0.1 nil #'load-dms-theme)))))))
+  :bind-keymap
+  ("C-c p" . project-prefix-map))
 
-;; Keybinds
-(global-set-key (kbd "C-c C-d") 'duplicate-line)
-(global-set-key (kbd "C-x b") 'consult-buffer)
-(global-set-key (kbd "C-x /") 'consult-ripgrep)
-(global-set-key (kbd "C-x g") 'magit)
 
-;; Установка и настройка Company (автодополнение)
-(unless (package-installed-p 'company)
-  (package-install 'company))
-(add-hook 'after-init-hook 'global-company-mode)
-(setq company-idle-delay 0.2)
-(setq company-minimum-prefix-length 2)
+;;; ---------------------------------------------------------------------------
+;;; Git
+;;; ---------------------------------------------------------------------------
 
-;; Magit
-(require 'magit)
+(use-package magit
+  :ensure t
+  :bind
+  (("C-x g" . magit-status))
+  :hook
+  (magit-status-mode . auto-revert-mode))
 
-(add-hook 'magit-status-mode-hook 'auto-revert-mode)
 
-;; Magit GitFlow
-(unless (package-installed-p 'magit-gitflow)
-  (package-install 'magit-gitflow))
-(require 'magit-gitflow)
-(add-hook 'magit-mode-hook 'turn-on-magit-gitflow)
+(use-package magit-gitflow
+  :ensure t
+  :after magit
+  :hook
+  (magit-mode . turn-on-magit-gitflow))
 
-;; Eglot config
-;; go-mode для синтаксиса
 
-(require 'go-mode)
-(require 'eglot)
+;;; ---------------------------------------------------------------------------
+;;; Go
+;;; ---------------------------------------------------------------------------
 
-;; Hooks
-(add-hook 'go-mode-hook #'eglot-ensure)
-(add-hook 'before-save-hook 'eglot-format-buffer)
+(use-package go-mode
+  :ensure t
+  :hook
+  (go-mode . eglot-ensure)
+  (go-mode . my/go-mode-setup))
 
-;; Slime for Common Lisp
-(require 'slime)
-(setq inferior-lisp-program "sbcl")
-(setq slime-contribs '(slime-fancy))
-(setq slime-complete-symbol-function 'slime-fuzzy-complete-symbol)
 
-;; SLIME keybindings
-(global-set-key (kbd "C-c s") 'slime)  ;; Запуск SLIME
+(use-package eglot
+  :ensure nil)
 
-;; Setting consult
-(require 'vertico)
-(vertico-mode 1)
 
-(require 'consult)
+(defun my/go-mode-setup ()
+  "Configure Go buffers."
+  (add-hook 'before-save-hook
+            #'eglot-format-buffer
+            nil
+            t))
 
-;; Custom func
-;; Delete all buffers
-(defun kill-all-buffers ()
-  "Kill all buffers"
+
+;;; ---------------------------------------------------------------------------
+;;; Common Lisp
+;;; ---------------------------------------------------------------------------
+
+(use-package slime
+  :ensure t
+  :custom
+  (inferior-lisp-program "sbcl")
+  (slime-contribs '(slime-fancy))
+  (slime-complete-symbol-function
+   #'slime-fuzzy-complete-symbol)
+  :bind
+  (("C-c s" . slime)))
+
+
+;;; ---------------------------------------------------------------------------
+;;; Custom commands
+;;; ---------------------------------------------------------------------------
+
+(defun my/kill-all-buffers ()
+  "Kill all live buffers."
   (interactive)
-  (mapc 'kill-buffer (buffer-list)))
+  (mapc #'kill-buffer (buffer-list)))
+
+
+(global-set-key (kbd "C-c C-d") #'duplicate-line)
+
+;;; ---------------------------------------------------------------------------
+;;; Custom system etc
+;;; ---------------------------------------------------------------------------
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -126,8 +229,7 @@
 	 "a10be2cb039228828c243dd66ad4e76a1cac691d001ea4e6d7e3dfe6a55b0d17"
 	 "49361d39cd77efa1e363fde9c80aa08e7a3ddaada86bccd90f3205af8733174a" default))
  '(package-selected-packages
-   '(all-the-icons base16-theme company consult magit magit-gitflow neotree
-				   projectile rg slime vertico-posframe)))
+   '(consult corfu magit magit-gitflow marginalia orderless slime)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
