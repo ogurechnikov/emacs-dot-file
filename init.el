@@ -41,6 +41,10 @@
 (show-paren-mode 1)
 (desktop-save-mode 1)
 
+(use-package dired-sidebar
+  :ensure t
+  :bind
+  (("C-c d" . dired-sidebar-toggle-sidebar)))
 
 ;;; ---------------------------------------------------------------------------
 ;;; Files
@@ -229,7 +233,7 @@
 	 "a10be2cb039228828c243dd66ad4e76a1cac691d001ea4e6d7e3dfe6a55b0d17"
 	 "49361d39cd77efa1e363fde9c80aa08e7a3ddaada86bccd90f3205af8733174a" default))
  '(package-selected-packages
-   '(consult corfu magit magit-gitflow marginalia orderless slime)))
+   '(consult corfu dired-sidebar magit magit-gitflow marginalia orderless slime)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
